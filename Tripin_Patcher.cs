@@ -11,10 +11,10 @@ namespace silksong_Aiming {
             //Debug.Log("-----------------------Tripin_Patcher11111111");
             Debug.Log(__instance.State.Name.ToString());
             if (!__instance.State.Name.ToString().Contains("TriPin")) return;
-            Debug.Log("-----------------------Tripin_Patcher");
+            //Debug.Log("-----------------------Tripin_Patcher");
             float origin_angle = __instance.angle.Value;
 
-            Debug.Log(origin_angle);
+            //Debug.Log(origin_angle);
             Transform transform = __instance.gameObject.GameObject.Value.transform;
             Vector3 position = transform.position;
             position.y += 0.3f;

@@ -184,7 +184,7 @@ namespace silksong_Aiming {
                     return;
                 }
                 AimingManager.IsAiming = !AimingManager.IsAiming;
-                Debug.Log($"show mouse {AimingManager.IsAiming}");
+                //Debug.Log($"show mouse {AimingManager.IsAiming}");
             }
             else if (command.Equals("s")) {
                 foreach (var col in FindObjectsByType<Collider2D>(FindObjectsSortMode.None)) {
@@ -208,7 +208,7 @@ namespace silksong_Aiming {
             else if (command.Equals("unlock")) {
                 var lists = Resources.FindObjectsOfTypeAll<ToolItemList>();
                 foreach (var list in lists) {
-                    Debug.Log("Unlocking tools ----------------------");
+                    //Debug.Log("Unlocking tools ----------------------");
                     foreach (var tool in list) {
                         if (!tool.IsUnlocked) {
                             Debug.Log($"Unlocking {tool.name}");

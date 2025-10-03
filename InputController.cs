@@ -1,7 +1,10 @@
-﻿using UnityEngine;
+﻿using InControl;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace silksong_Aiming {
-    public class MouseInputRenderer : MonoBehaviour {
+    public class InputController : MonoBehaviour {
         public float radius = 0.1f;
         public Color color = Color.red;
         public float width = 0.05f;
@@ -37,7 +40,7 @@ namespace silksong_Aiming {
         private KeyCode SwitchToDownSkillKey;
         private KeyCode SwitchToAttackKey;
         void Update() {
-            lineRenderer.enabled = AimingManager.IsAiming;
+            lineRenderer.enabled = AimingManager.IsAiming && !AimingManager.UsingJoystick;
             if (!UnityEngine.Camera.main) { return; }
             if (!Main.gm || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
                 return;
@@ -51,7 +54,6 @@ namespace silksong_Aiming {
             // 更新圆的位置
             DrawCircle(mouseWorldPos);
         }
-
         public void GetInput() {
 
             if (!Main.gm || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
@@ -59,23 +61,29 @@ namespace silksong_Aiming {
             }
             if (Input.GetKeyDown(ToggleAimingKey)) {
                 AimingManager.IsAiming = !AimingManager.IsAiming;
-                Debug.Log("ToggleAiming");
+                AimingManager.UsingJoystick = false;
+            }
+            else
+            //if (Input.GetKeyDown(KeyCode.Joystick1Button9)) {
+            if (InputManager.ActiveDevice.LeftStickButton.WasPressed) {
+                AimingManager.IsAiming = !AimingManager.IsAiming;
+                AimingManager.UsingJoystick = true;
             }
             if (!AimingManager.IsAiming) { return; }
             if (Input.GetKeyDown(SwitchToUpSkillKey)) {
-                Debug.Log("111111111");
+                //Debug.Log("111111111");
                 AimingManager.AttackKeyActive = 1;
             }
             else if (Input.GetKeyDown(SwitchToMiddleSkillKey)) {
-                Debug.Log("22222222222");
+                //Debug.Log("22222222222");
                 AimingManager.AttackKeyActive = 2;
             }
             else if (Input.GetKeyDown(SwitchToDownSkillKey)) {
-                Debug.Log("3333333333");
+                //Debug.Log("3333333333");
                 AimingManager.AttackKeyActive = 3;
             }
             else if (Input.GetKeyDown(SwitchToAttackKey)) {
-                Debug.Log("444444444");
+                //Debug.Log("444444444");
                 AimingManager.AttackKeyActive = 4;
             }
         }
@@ -84,6 +92,10 @@ namespace silksong_Aiming {
             Vector3 mousePos = Input.mousePosition;
             mousePos.z = UnityEngine.Camera.main.nearClipPlane + 0.1f;
             return UnityEngine.Camera.main.ScreenToWorldPoint(mousePos);
+            //Vector3 mousePos = Input.mousePosition;
+            //mousePos.z = -UnityEngine.Camera.main.transform.position.z;
+            //Vector3 MousePosW = UnityEngine.Camera.main.ScreenToWorldPoint(mousePos);
+            //MousePosW.z = UnityEngine.Camera.main.nearClipPlane - 100f;
         }
 
         void DrawCircle(Vector3 center) {

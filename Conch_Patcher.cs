@@ -37,11 +37,7 @@ namespace silksong_Aiming {
                 //Debug.Log(oriVel.magnitude);
                 //Debug.Log(v);
                 //if (!__instance.State.Name.ToString().Contains("Conch")) return;
-                Vector3 mousePos = Input.mousePosition;
-                mousePos.z = -UnityEngine.Camera.main.transform.position.z;
-                Vector3 mouseWorldPos = UnityEngine.Camera.main.ScreenToWorldPoint(mousePos);
-                mouseWorldPos.z = 0;
-                AimingManager.MousePosW = mouseWorldPos;
+                AimingManager.RefreshMousePosition();
                 Vector2 dir = AimingManager.GetDirectionToMouse(obj.transform.position);
                 if (Time.time - AimingManager.LastClickTime < 0.03f) {
                     //Debug.Log("aaaaaaaaaaaa" + AimingManager.LastClickTime);
@@ -105,15 +101,15 @@ namespace silksong_Aiming {
             if (!AimingManager.IsAiming) return;
             if (Time.time - AimingManager.LastClickTime < 0.038f) {
                 //Debug.Log("aaaaaaaaaaaa" + AimingManager.LastClickTime);
-                Debug.Log("-----------------------ConchProjectileHelperAction_OnEnter_pre");
-                Debug.Log(Dir);
+                //Debug.Log("-----------------------ConchProjectileHelperAction_OnEnter_pre");
+                //Debug.Log(Dir);
                 Vector2 ori_dir = __instance.direction.Value;
-                Debug.Log(ori_dir);
+                //Debug.Log(ori_dir);
                 //Debug.Log(__instance.State.Name.ToString());
                 var conchProjectileCollision = __instance.target.GetSafe<ConchProjectileCollision>(__instance);
-                Debug.Log(conchProjectileCollision.transform.GetScaleX());
+                //Debug.Log(conchProjectileCollision.transform.GetScaleX());
                 if (ori_dir == Dir) {
-                    Debug.Log("same");
+                    //Debug.Log("same");
                     return;
                 }
                 if (conchProjectileCollision != null) {

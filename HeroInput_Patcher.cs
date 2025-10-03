@@ -27,7 +27,7 @@ namespace silksong_Aiming {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HeroController), "LookForQueueInput")]
         public static void HeroController_LookForQueueInput_pre(HeroController __instance) {
-            if (!AimingManager.IsAiming) return;
+            if (!AimingManager.UseAttackKeyOverlay()) return;
             HeroActions inputActions = Main.gm.inputHandler.inputActions;
             if (AimingManager.AttackKeyActive < 4) {
                 //Debug.LogWarning("HeroController_LookForQueueInput_pre"+inputActions.Attack.WasPressed);
@@ -51,7 +51,7 @@ namespace silksong_Aiming {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HeroController), "GetWillThrowTool")]
         public static bool HeroController_GetWillThrowTool_pre(ref bool __result, HeroController __instance, bool reportFailure) {
-            if (!AimingManager.IsAiming || AimingManager.AttackKeyActive >= 4) return true;
+            if (!AimingManager.UseAttackKeyOverlay() || AimingManager.AttackKeyActive >= 4) return true;
             HeroActions inputActions = Main.gm.inputHandler.inputActions;
             if (!inputActions.Attack.IsPressed) return true;
 
@@ -86,7 +86,7 @@ namespace silksong_Aiming {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HeroController), "DoAttack")]
         public static bool HeroController_DoAttack_pre(HeroController __instance) {
-            if (!AimingManager.IsAiming) return true;
+            if (!AimingManager.UseAttackKeyOverlay()) return true;
             //Debug.Log("no DoAttack...............");
             HeroActions inputActions = Main.gm.inputHandler.inputActions;
             //Debug.Log(inputActions.Attack.IsPressed);

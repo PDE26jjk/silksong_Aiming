@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using UnityEngine;
 using HutongGames.PlayMaker.Actions;
 using System.Collections;
+using InControl;
 
 namespace silksong_Aiming {
     [BepInPlugin("4DDE5A40-E435-E161-9E6D-4D384476C74D", "Aiming", "0.0.1")]
     public class Main : BaseUnityPlugin {
         private ConsoleController consoleController;
-        private MouseInputRenderer mouseCircleRenderer;
+        private InputController mouseCircleRenderer;
         private static GameObject consoleObject;
         private static GameObject aimingObject;
         public static GameManager gm => _gm != null ? _gm : (_gm = GameManager.instance);
@@ -80,8 +81,8 @@ namespace silksong_Aiming {
                 aimingObject = new GameObject("__AimingObject");
                 DontDestroyOnLoad(aimingObject);
                 if (aimingObject != null) {
-                    if (aimingObject.GetComponent<MouseInputRenderer>() == null) {
-                        mouseCircleRenderer = aimingObject.AddComponent<MouseInputRenderer>();
+                    if (aimingObject.GetComponent<InputController>() == null) {
+                        mouseCircleRenderer = aimingObject.AddComponent<InputController>();
                     }
                 }
             }
@@ -118,13 +119,34 @@ namespace silksong_Aiming {
         internal static Vector3 MousePosW = Vector3.zero;
         internal static float LastClickTime;
         internal static int AttackKeyActive = 1;
+        internal static bool UsingJoystick;
+        public static bool UseAttackKeyOverlay() {
+            return IsAiming && !UsingJoystick;
+        }
 
         public static Vector3 RefreshMousePosition() {
+            if (!UsingJoystick) {
             // 获取鼠标世界坐标
             Vector3 mousePos = Input.mousePosition;
             mousePos.z = -UnityEngine.Camera.main.transform.position.z;
             MousePosW = UnityEngine.Camera.main.ScreenToWorldPoint(mousePos);
             MousePosW.z = 0; // 确保Z坐标为0
+            }
+            // 手柄方向的偏移代替鼠标位置
+            else {
+                var heroPos = Main.gm.hero_ctrl.transform.position;
+                var heroFacingRight = Main.gm.hero_ctrl.cState.facingRight;
+                Vector3 joystickDir = InputManager.ActiveDevice.RightStick.Vector;
+                if(joystickDir.magnitude < 0.3) {
+                    joystickDir = heroFacingRight ? Vector2.right : Vector2.left;
+                }
+                else {
+                    joystickDir.Normalize();
+                }
+
+                //Debug.Log(Mathf.Atan2(dir.y,dir.x) * Mathf.Rad2Deg);
+                MousePosW = heroPos + joystickDir * 30;
+            }
             return MousePosW;
         }
 

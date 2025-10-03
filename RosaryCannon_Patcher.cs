@@ -8,11 +8,11 @@ namespace silksong_Aiming {
         [HarmonyPatch(typeof(SpawnProjectileV2), "OnEnter")]
         public static void SpawnProjectileV2_OnEnter_post(SpawnProjectileV2 __instance) {
             if (!AimingManager.IsAiming) return;
-            Debug.Log(__instance.State.Name.ToString());
+            //Debug.Log(__instance.State.Name.ToString());
             if (!__instance.State.Name.ToString().Contains("Shoot")) return;
             var obj = __instance.StoreSpawned.Value;
             if (!obj.name.ToString().Contains("Geo Small Projectile")) return;
-            Debug.Log("-----------------------RosaryCannon_Patcher111111111");
+            //Debug.Log("-----------------------RosaryCannon_Patcher111111111");
             Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
             Transform transform = obj.transform;
             Vector3 position = transform.position;
@@ -39,7 +39,7 @@ namespace silksong_Aiming {
                     heroController.FlipSprite();
                 }
             }
-            Debug.Log("-----------------------RosaryCannon_Patcher");
+            //Debug.Log("-----------------------RosaryCannon_Patcher");
         }
 
         [HarmonyPrefix]

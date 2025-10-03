@@ -142,7 +142,7 @@
     <Compile Include="HeroInput_Patcher.cs" />
     <Compile Include="HitEnemy_Patcher.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="MouseInputRenderer.cs" />
+    <Compile Include="InputController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RosaryCannon_Patcher.cs" />
     <Compile Include="Settings.cs" />

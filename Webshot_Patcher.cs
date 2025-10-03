@@ -46,7 +46,7 @@ namespace silksong_Aiming {
             if (!AimingManager.IsAiming) {
                 angle = 0;
             }
-            Debug.Log("angle: " + angle);
+            //Debug.Log("angle: " + angle);
             string[] toRoate = { "SnipeShot Trail", "Spit Effect W", "SnipeShot Impact", "Flash S" };
             if (toRoate.Contains(obj.name.ToString())) {
                 if (angle > 90 || angle < -90) {
@@ -60,14 +60,14 @@ namespace silksong_Aiming {
             //Transform transform = obj.transform;
             //Vector3 position = transform.position;
         }
-        [HarmonyPrefix]
+        [HarmonyPrefix] 
         [HarmonyPatch(typeof(RayCast2dV2), "DoRaycast")]
         public static bool RayCast2dV2_DoRaycast_pre(RayCast2dV2 __instance) {
             if (!AimingManager.IsAiming) return true;
 
             if (!__instance.State.Name.ToString().Contains("Snipe Ray")) return true;
             //Debug.Log("-----------------------RayCast2dV2_DoRaycast_pre111111111");
-            Debug.Log(__instance.State.Name.ToString());
+            //Debug.Log(__instance.State.Name.ToString());
             //Debug.Log(__instance.maxDepth);
             __instance.debug = true;
             //__instance.debugColor = Color.red;
@@ -330,5 +330,5 @@ namespace silksong_Aiming {
             Debug.Log("-----------------------RayCast2dV2_DoRaycast_pre");
             return true;
         }
-    }
+    } 
 }

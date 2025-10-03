@@ -43,7 +43,7 @@ namespace silksong_Aiming {
                 // 非技能工具处理
                 // 如果没有投掷预制体
                 if (!usage.ThrowPrefab) {
-                    Debug.Log("没有投掷预制体");
+                    //Debug.Log("没有投掷预制体");
                     //Debug.Log(usage.FsmEventName);
                     string[] toPatcher = { "TRI PIN", "TACKS", "FISHERPIN","WEBSHOT FORGE","WEBSHOT ARCHITECT", "WEBSHOT WEAVER", "ROSARY CANNON" };
                     if (!toPatcher.Contains(usage.FsmEventName)) {
@@ -52,7 +52,7 @@ namespace silksong_Aiming {
                     }
                 }
                 if (usage.ThrowPrefab) { 
-                    Debug.Log(usage.ThrowPrefab.name);
+                    //Debug.Log(usage.ThrowPrefab.name);
                     string[] toPatcher = { "Tool Pin", "Tool Barb", "Curve Claw","Curve Claw Upgraded", "Hero Shakra Ring", "Tool Bomb", "Hero Conch Projectile", "Tool Lightning Bola" };
                     if (!toPatcher.Contains(usage.ThrowPrefab.name)) {
                         return true;
@@ -211,23 +211,23 @@ namespace silksong_Aiming {
                                 fsm.Start();
                             }
                             FsmExecutionStack.PushFsm(fsm);
-                            Debug.Log(fsm.ActiveState.Transitions.Length);
+                            //Debug.Log(fsm.ActiveState.Transitions.Length);
                             foreach (var trans in fsm.ActiveState.Transitions) {
                                 if (trans.FsmEvent == event1) {
                                     FsmState state = trans.ToFsmState;
-                                    Debug.Log(state.Name);
+                                    //Debug.Log(state.Name);
                                     fsm.SwitchState(state);
                                     state = state.Transitions[0].ToFsmState;
-                                    Debug.Log(state.Name);
+                                    //Debug.Log(state.Name);
                                     //AccessTools.Field(typeof(Fsm), "activeState").SetValue(fsm, state);
                                     //var EnterStateMethod = AccessTools.Method(typeof(Fsm), "EnterState");
                                     //EnterStateMethod.Invoke(fsm, new object[] { state });
                                     //fsm.StateChanged(state);
                                     state.OnEnter();
-                                    Debug.Log(state.Actions.Length);
+                                    //Debug.Log(state.Actions.Length);
                                     AccessTools.Field(typeof(FsmState), "active").SetValue(state, true);
                                     foreach (var action in state.Actions) {
-                                        Debug.Log(action);
+                                        //Debug.Log(action);
                                         action.Init(state);
                                         action.OnEnter();
                                         action.OnExit();
@@ -236,15 +236,15 @@ namespace silksong_Aiming {
                                         //action.IsOpen = false;
                                     }
                                     //state.Actions = new FsmStateAction[0];
-                                    Debug.Log(state.Transitions.Length);
+                                    //Debug.Log(state.Transitions.Length);
 
                                     foreach (var _trans in state.Transitions) {
-                                        Debug.Log(_trans + " : " + _trans.EventName);
+                                        //Debug.Log(_trans + " : " + _trans.EventName);
                                         FsmState _state = _trans.ToFsmState;
                                         if (_state != null) {
 
                                             foreach (var action in _state.Actions) {
-                                                Debug.Log(action);
+                                                //Debug.Log(action);
                                             }
                                         }
                                     }                            //state.OnExit();
@@ -260,7 +260,7 @@ namespace silksong_Aiming {
                         }
                     // guns 
                     if (!usage.IsNonBlockingEvent) {
-                        Debug.Log("-----IsNonBlockingEvent");
+                        //Debug.Log("-----IsNonBlockingEvent");
                         //if (cState.wallSliding) {
                         //    __instance.FlipSprite();
                         //    __instance.CancelWallsliding();
@@ -278,14 +278,14 @@ namespace silksong_Aiming {
                                 fsm.Start();
                             } 
                             FsmExecutionStack.PushFsm(fsm);
-                            Debug.Log(fsm.ActiveState.Transitions.Length);
+                            //Debug.Log(fsm.ActiveState.Transitions.Length);
                             foreach (var trans in fsm.ActiveState.Transitions) {
                                 if (trans.FsmEvent == event1) {
                                     FsmState state = trans.ToFsmState;
-                                    Debug.Log(state.Name);
+                                    //Debug.Log(state.Name);
                                     fsm.SwitchState(state);
                                     state = state.Transitions[0].ToFsmState;
-                                    Debug.Log(state.Name);
+                                    //Debug.Log(state.Name);
                                     //AccessTools.Field(typeof(Fsm), "activeState").SetValue(fsm, state);
                                     //var EnterStateMethod = AccessTools.Method(typeof(Fsm), "EnterState");
                                     //EnterStateMethod.Invoke(fsm, new object[] { state });

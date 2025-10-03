@@ -10,9 +10,9 @@ namespace silksong_Aiming {
             if (!AimingManager.IsAiming) return;
             //Debug.Log(__instance.State.Name);
             //Debug.Log(__instance.Owner);
-            Debug.Log(__instance.State.Name.ToString());
+            //Debug.Log(__instance.State.Name.ToString());
             if (!__instance.State.Name.ToString().Contains("Fisherpin")) return;
-            Debug.Log("-----------------------Fisherpin_Patcher");
+            //Debug.Log("---------------------Fisherpin_Patcher");
             var obj = __instance.StoreSpawned.Value;
             Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
             Transform transform = obj.transform;

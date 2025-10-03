@@ -9,9 +9,7 @@ namespace silksong_Aiming {
             // Curve Claw and Curve Claw Upgraded
             if (!AimingManager.IsAiming) return;
             float elapsedTime = (float)AccessTools.Field(typeof(ToolBoomerang), "elapsedTime").GetValue(__instance);
-            //Debug.Log("-----------------------ToolBoomerang11111111111" + elapsedTime);
             if (elapsedTime > 0.03f) return;
-            Debug.Log("-----------------------ToolBoomerang");
             Vector2 position = __instance.gameObject.transform.position;
             AccessTools.Field(typeof(ToolBoomerang), "initialPosition").SetValue(__instance, position);
             AccessTools.Field(typeof(ToolBoomerang), "previousPosition").SetValue(__instance, position);
@@ -35,10 +33,8 @@ namespace silksong_Aiming {
             var dir2mouse = AimingManager.GetDirectionToMouse(position);
             var heroController = Main.gm.hero_ctrl;
             float offset = heroController.transform.position.x - position.x;
-            //Debug.Log("OnEnable...............facingRight: "+ AimingManager.FacingRightBeforeThrow);
             
             if ((offset * dir2mouse.x > 0)) {
-                Debug.Log("fix direction ....................");
                 position.x += 2 * offset;
                 __instance.gameObject.transform.position = position;
             }

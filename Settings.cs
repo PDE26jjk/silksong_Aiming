@@ -13,7 +13,7 @@ public class Settings {
     public static Settings Read() {
         var ret = new Settings();
         if (!File.Exists(ret.SettingFile)) {
-            Debug.LogError($"Error reading config: Aiming Config File not found. Creating default config...");
+            //Debug.LogError($"Error reading config: Aiming Config File not found. Creating default config...");
             File.WriteAllText(ret.SettingFile, defaultSettingString);
         }
         ReadFile(ret.SettingFile);
@@ -38,7 +38,7 @@ public class Settings {
             }
         }
         catch (Exception ex) {
-            Debug.LogError($"Error reading config file: {ex.Message}");
+            //Debug.LogError($"Error reading config file: {ex.Message}");
         }
     }
 
