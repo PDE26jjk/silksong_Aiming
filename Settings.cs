@@ -38,7 +38,7 @@ public class Settings {
             }
         }
         catch (Exception ex) {
-            //Debug.LogError($"Error reading config file: {ex.Message}");
+            Debug.LogError($"Error reading config file: {ex.Message}");
         }
     }
 
@@ -233,5 +233,9 @@ CrosshairColor = red
 SilkGainWhenAimingToolHit=true
 ToolsToAddSilk=Straight Pin, Tri Pin, Harpoon, Curve Claws, Curve Claws Upgraded, Shakra Ring, Conch Drill, WebShot Forge, WebShot Architect,WebShot Weaver
 
+ReplaceAttackKey=true
+UseDPadToChangeTools=true
+UseHarpoonDashAiming=false
+ActiveToolColor=#EACC80
 ";
 }

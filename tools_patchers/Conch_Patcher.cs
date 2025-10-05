@@ -19,7 +19,7 @@ namespace silksong_Aiming {
                 return;
             }
 
-            Debug.Log(__instance.State.Name.ToString());
+            //Debug.Log(__instance.State.Name.ToString());
             //Vector2 oriVel = __instance.DesiredVelocity.Value;
 
             //foreach (var state in __instance.State.Fsm.States) {
@@ -37,8 +37,10 @@ namespace silksong_Aiming {
                 //Debug.Log(oriVel.magnitude);
                 //Debug.Log(v);
                 //if (!__instance.State.Name.ToString().Contains("Conch")) return;
-                AimingManager.RefreshMousePosition();
+                //AimingManager.RefreshMousePosition();
                 Vector2 dir = AimingManager.GetDirectionToMouse(obj.transform.position);
+                if (AimingManager.DefaultJoystickDir && Main.hero.cState.wallSliding) dir = -dir;
+                //Debug.Log("SetDesiredProjectileVelocity wallSlding:------" + AimingManager.OnWallWhenGetDir);
                 if (Time.time - AimingManager.LastClickTime < 0.03f) {
                     //Debug.Log("aaaaaaaaaaaa" + AimingManager.LastClickTime);
                 }
@@ -88,6 +90,7 @@ namespace silksong_Aiming {
                 Transform transform = obj.transform;
                 //Vector3 position = transform.position;
                 float angle = Mathf.Atan2(Dir.y, Dir.x) * Mathf.Rad2Deg;
+                //DebugLineRenderer.DrawArrow(obj.transform.position, (Vector2)obj.transform.position + Dir * 5, Color.red,3);
                 transform.SetRotation2D(angle);
                 DamageEnemies component = obj.GetComponent<DamageEnemies>();
                 if (component != null) {

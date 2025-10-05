@@ -1,4 +1,6 @@
-﻿using InControl;
+﻿using HarmonyLib;
+using HutongGames.PlayMaker;
+using InControl;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +13,7 @@ namespace silksong_Aiming {
         public int segments = 32;
 
         private LineRenderer lineRenderer;
+        private bool UseDPadToChangeTools;
 
         void Start() {
             // 创建 LineRenderer
@@ -33,19 +36,33 @@ namespace silksong_Aiming {
             SwitchToDownSkillKey = Settings.GetKeyCode("SwitchToDownSkillKey", KeyCode.Alpha3);
             SwitchToAttackKey = Settings.GetKeyCode("SwitchToAttackKey", KeyCode.Alpha4);
 
+            AimingManager.ReplaceAttackKey = Settings.GetBool("ReplaceAttackKey", true);
+            AimingManager._UseHarpoonDashAiming = Settings.GetBool("UseHarpoonDashAiming", false);
+            UseDPadToChangeTools = Settings.GetBool("UseDPadToChangeTools", true);
+
         }
         private KeyCode ToggleAimingKey;
         private KeyCode SwitchToUpSkillKey;
         private KeyCode SwitchToMiddleSkillKey;
         private KeyCode SwitchToDownSkillKey;
         private KeyCode SwitchToAttackKey;
+
+        private bool useTimeSlow = false;
+        static bool lastIsAiming;
+        static int lastAttackKeyActive;
+
         void Update() {
             lineRenderer.enabled = AimingManager.IsAiming && !AimingManager.UsingJoystick;
+
             if (!UnityEngine.Camera.main) { return; }
             if (!Main.gm || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
                 return;
             }
             GetInput();
+            AimingManager.ShouldUpdateHUD = (lastIsAiming != AimingManager.IsAiming || lastAttackKeyActive != AimingManager.AttackKeyActive);
+            lastIsAiming = AimingManager.IsAiming;
+            lastAttackKeyActive = AimingManager.AttackKeyActive;
+
             if (!AimingManager.IsAiming) {
                 return;
             }
@@ -59,14 +76,110 @@ namespace silksong_Aiming {
             if (!Main.gm || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
                 return;
             }
+#if DEBUG
+            if (Input.GetKeyDown(KeyCode.Alpha6)) {
+                useTimeSlow = !useTimeSlow;
+            }
+            if (useTimeSlow) {
+                Time.timeScale = 0.2f;
+            }
+            else {
+                Time.timeScale = 1.0f;
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha5)) {
+                var hero = Main.gm.hero_ctrl;
+                if (hero == null) { return; }
+                //hero.harpoonDashFSM.SendEventSafe("DO MOVE");
+                string activeStateName = hero.harpoonDashFSM.ActiveStateName;
+
+                //toolEventTarget.SendEvent(usage.FsmEventName);
+                var event1 = FsmEvent.GetFsmEvent("DO MOVE");
+                var fsm = hero.harpoonDashFSM.Fsm;
+                //fsm.ProcessEvent(event1);
+                if (!fsm.Started) {
+                    fsm.Start();
+                }
+                FsmExecutionStack.PushFsm(fsm);
+                //Debug.Log(fsm.ActiveState.Transitions.Length);
+                Debug.Log("active :" + fsm.ActiveState.Name);
+                foreach (var state in fsm.States) {
+                    Debug.Log(state.Name);
+                    foreach (var _trans in state.Transitions) {
+                        //FsmState _state = _trans.ToFsmState;
+                        Debug.Log("    " + _trans.EventName + "-->" + _trans.ToFsmState.Name);
+                    }
+                }
+                //foreach (var trans in fsm.ActiveState.Transitions) {
+                //    if (trans.FsmEvent == event1) {
+                //        FsmState state = trans.ToFsmState;
+                //        Debug.Log(state.Name);
+                //        fsm.SwitchState(state);
+                //        Debug.Log(state.Transitions.Length);
+                //        //state = state.Transitions[1].ToFsmState;
+                //        Debug.Log(state.Name);
+                //        //AccessTools.Field(typeof(Fsm), "activeState").SetValue(fsm, state);
+                //        //var EnterStateMethod = AccessTools.Method(typeof(Fsm), "EnterState");
+                //        //EnterStateMethod.Invoke(fsm, new object[] { state });
+                //        //fsm.StateChanged(state);
+                //        state.OnEnter();
+                //        AccessTools.Field(typeof(FsmState), "active").SetValue(state, true);
+                //        //state.Actions = new FsmStateAction[0];
+                //        Debug.Log(state.Transitions.Length);
+
+                //        foreach (var _trans in state.Transitions) {
+                //            //FsmState _state = _trans.ToFsmState;
+                //            Debug.Log(_trans.EventName + "-->" + _trans.ToFsmState.Name);
+                //        }
+                //        //state.OnExit();
+                //        //fsm.SwitchState(state);
+                //    }
+                //}
+
+                FsmExecutionStack.PopFsm();
+
+                //Debug.Log("hero state:");
+                //Debug.Log(hero.harpoonDashFSM.ActiveStateName);
+                //Debug.Log(hero.fsm_brollyControl.ActiveStateName);
+                //Debug.Log(hero.fsm_fallTrail.ActiveStateName);
+                //Debug.Log("all state:");
+                //foreach (var state in hero.harpoonDashFSM.FsmStates)
+                //{
+                //    Debug.Log("state: "+state.Name);
+                //    foreach (var action in state.Actions)
+                //    {
+                //        Debug.Log(action);
+                //    }
+
+                //}
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha7)) {
+                var hero = Main.gm.hero_ctrl;
+                Debug.Log("harpoonDashFSM : " + hero.harpoonDashFSM.ActiveStateName);
+                Debug.Log("Action : " + hero.harpoonDashFSM.Fsm.ActiveState.ActiveAction);
+            }
+
+#endif
+
             if (Input.GetKeyDown(ToggleAimingKey)) {
-                AimingManager.IsAiming = !AimingManager.IsAiming;
-                AimingManager.UsingJoystick = false;
+                if (AimingManager.UsingJoystick && AimingManager.IsAiming) {
+                    AimingManager.UsingJoystick = false;
+                }
+                else {
+                    AimingManager.IsAiming = !AimingManager.IsAiming;
+                }
             }
             else
             //if (Input.GetKeyDown(KeyCode.Joystick1Button9)) {
             if (InputManager.ActiveDevice.LeftStickButton.WasPressed) {
-                AimingManager.IsAiming = !AimingManager.IsAiming;
+                if (!AimingManager.UsingJoystick && AimingManager.IsAiming) {
+                    AimingManager.UsingJoystick = true;
+                }
+                else {
+                    AimingManager.IsAiming = !AimingManager.IsAiming;
+                }
+            }
+            Vector3 joystickDir = InputManager.ActiveDevice.RightStick.Vector;
+            if (joystickDir.magnitude >= 0.5 && !AimingManager.UsingJoystick && AimingManager.IsAiming) {
                 AimingManager.UsingJoystick = true;
             }
             if (!AimingManager.IsAiming) { return; }
@@ -85,6 +198,24 @@ namespace silksong_Aiming {
             else if (Input.GetKeyDown(SwitchToAttackKey)) {
                 //Debug.Log("444444444");
                 AimingManager.AttackKeyActive = 4;
+            }
+            if (UseDPadToChangeTools) {
+                if (InputManager.ActiveDevice.DPadUp.WasPressed) {
+                    //Debug.Log("111111111");
+                    AimingManager.AttackKeyActive = 1;
+                }
+                else if (InputManager.ActiveDevice.DPadRight.WasPressed) {
+                    //Debug.Log("22222222222");
+                    AimingManager.AttackKeyActive = 2;
+                }
+                else if (InputManager.ActiveDevice.DPadDown.WasPressed) {
+                    //Debug.Log("3333333333");
+                    AimingManager.AttackKeyActive = 3;
+                }
+                else if (InputManager.ActiveDevice.DPadLeft.WasPressed) {
+                    //Debug.Log("444444444");
+                    AimingManager.AttackKeyActive = 4;
+                }
             }
         }
 

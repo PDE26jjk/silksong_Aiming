@@ -60,7 +60,7 @@ namespace silksong_Aiming {
             //Transform transform = obj.transform;
             //Vector3 position = transform.position;
         }
-        [HarmonyPrefix] 
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(RayCast2dV2), "DoRaycast")]
         public static bool RayCast2dV2_DoRaycast_pre(RayCast2dV2 __instance) {
             if (!AimingManager.IsAiming) return true;
@@ -185,7 +185,7 @@ namespace silksong_Aiming {
             var dir2mouse = AimingManager.GetDirectionToMouse(position);
             var angle2mouse = AimingManager.GetAngleToMouse(position);
             float angle = angle2mouse;
-            Debug.Log("angle: " + angle);
+            //Debug.Log("angle: " + angle);
             string[] toRoate = { "Spit Effect S", "Flash S" };
             if (toRoate.Contains(obj.name.ToString())) {
                 if (angle > 90 || angle < -90) {
@@ -209,19 +209,19 @@ namespace silksong_Aiming {
             var obj = __instance.storeObject.Value;
             if (obj.name.Contains("WebShot Bullet")) {
                 //obj.SetActive(false);
-                PrintChildren(obj);
-                var fsm = obj.GetComponent<PlayMakerFSM>().Fsm;
-                foreach (var state in fsm.States) {
-                    Debug.Log(state.Name);
-                    foreach (var action in state.Actions) {
-                        Debug.Log(action);
-                    }
-                }
+                //PrintChildren(obj);
+                //var fsm = obj.GetComponent<PlayMakerFSM>().Fsm;
+                //foreach (var state in fsm.States) {
+                //    Debug.Log(state.Name);
+                //    foreach (var action in state.Actions) {
+                //        Debug.Log(action);
+                //    }
+                //}
 
-                Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
-                Debug.Log(rb.linearVelocity);
+                //Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
+                //Debug.Log(rb.linearVelocity);
                 //rb.linearVelocity = new  Vector2(0, 1);
-                obj.transform.SetRotation2D(90);
+                //obj.transform.SetRotation2D(90);
             }
             //obj.transform.SetRotation2D(angle2mouse);
             //Debug.Log(angle2mouse);
@@ -268,67 +268,11 @@ namespace silksong_Aiming {
             //Debug.Log(__instance.angle.Value + ": " + angle2mouse + ": " + origin_angle);
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(RayCast2dV2), "DoRaycast")]
-        public static bool RayCast2dV2_DoRaycast_pre(RayCast2dV2 __instance) {
-            if (!AimingManager.IsAiming) return true;
-            return true;
-            if (!__instance.State.Name.ToString().Contains("WebShot F Fire")) return true;
-            Debug.Log("-----------------------RayCast2dV2_DoRaycast_pre111111111");
-            Debug.Log(__instance.State.Name.ToString());
-            //Debug.Log(__instance.maxDepth);
-            __instance.debug = true;
-            //__instance.debugColor = Color.red;
-            var _trans = AccessTools.Field(typeof(RayCast2dV2), "_trans").GetValue(__instance) as Transform;
-            Vector2 position = __instance.fromPosition.Value;
-            if (_trans != null) {
-                position.x += _trans.position.x;
-                position.y += _trans.position.y;
-            }
-            AimingManager.RefreshMousePosition();
-            var dir2mouse = AimingManager.GetDirectionToMouse(position);
-            Debug.Log(__instance.direction);
-            __instance.direction = dir2mouse;
-            //var angle2mouse = AimingManager.GetAngleToMouse(position);
-            //float num = float.PositiveInfinity;
-            //if (__instance.distance.Value > 0f) {
-            //    num = __instance.distance.Value;
-            //}
-            //Vector2 normalized = __instance.direction.Value.normalized;
-            //Vector3 vector = _trans.TransformDirection(new Vector3(__instance.direction.Value.x, __instance.direction.Value.y, 0f));
-            //normalized.x = vector.x;
-            //normalized.y = vector.y;
-            //RaycastHit2D raycastHit2D;
-            //if (__instance.ignoreTriggers.Value) {
-            //    Helper.IsRayHittingNoTriggers(position, normalized, num, ActionHelpers.LayerArrayToLayerMask(__instance.layerMask, __instance.invertMask.Value), out raycastHit2D);
-            //}
-            //else {
-            //    raycastHit2D = Helper.Raycast2D(position, normalized, num, ActionHelpers.LayerArrayToLayerMask(__instance.layerMask, __instance.invertMask.Value));
-            //}
-            //if (raycastHit2D.collider != null && __instance.ignoreTriggers.Value && raycastHit2D.collider.isTrigger) {
-            //    raycastHit2D = default(RaycastHit2D);
-            //}
-            //bool flag = raycastHit2D.collider != null;
-            //PlayMakerUnity2d.RecordLastRaycastHitInfo(__instance.Fsm, raycastHit2D);
-            //__instance.storeDidHit.Value = flag;
-            //if (flag) {
-            //    __instance.storeHitObject.Value = raycastHit2D.collider.gameObject;
-            //    __instance.storeHitPoint.Value = raycastHit2D.point;
-            //    __instance.storeHitNormal.Value = raycastHit2D.normal;
-            //    __instance.storeHitDistance.Value = raycastHit2D.fraction;
-            //    __instance.storeDistance.Value = raycastHit2D.distance;
-            //    Debug.Log("HitEvent");
-            //    __instance.Fsm.Event(__instance.hitEvent);
-            //}
-            //else {
-            //    Debug.Log("noHitEvent");
-            //    __instance.storeHitPoint.Value = position + dir2mouse * 30;
-            //    __instance.storeDistance.Value = 30;
-            //    __instance.Fsm.Event(__instance.hitEvent);
-            //}
-
-            Debug.Log("-----------------------RayCast2dV2_DoRaycast_pre");
-            return true;
-        }
-    } 
+        //[HarmonyPrefix]
+        //[HarmonyPatch(typeof(RayCast2dV2), "DoRaycast")]
+        //public static bool RayCast2dV2_DoRaycast_pre(RayCast2dV2 __instance) {
+        //    if (!AimingManager.IsAiming) return true;
+        //    return true;
+        //}
+    }
 }

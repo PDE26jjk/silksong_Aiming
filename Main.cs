@@ -19,9 +19,10 @@ namespace silksong_Aiming {
         private static GameObject consoleObject;
         private static GameObject aimingObject;
         public static GameManager gm => _gm != null ? _gm : (_gm = GameManager.instance);
+        public static HeroController hero => gm != null ? gm.hero_ctrl : null;
         public static GameManager _gm;
         private ILogListener logListener;
-        private bool found = false;
+        //private bool found = false;
         private void Awake() {
             Settings.Read();
 #if DEBUG
@@ -36,6 +37,7 @@ namespace silksong_Aiming {
             Harmony.CreateAndPatchAll(typeof(HitEnemy_Patcher));
             Harmony.CreateAndPatchAll(typeof(AimingPatcher));
             Harmony.CreateAndPatchAll(typeof(SetStateLogger));
+
             Harmony.CreateAndPatchAll(typeof(Tripin_Patcher));
             Harmony.CreateAndPatchAll(typeof(Fisherpin_Patcher));
             Harmony.CreateAndPatchAll(typeof(Boomerang_Patcher));
@@ -43,16 +45,20 @@ namespace silksong_Aiming {
             Harmony.CreateAndPatchAll(typeof(RosaryCannon_Patcher));
             Harmony.CreateAndPatchAll(typeof(WebshotWeaver_Patcher));
             Harmony.CreateAndPatchAll(typeof(WebshotForge_Patcher));
+
+            Harmony.CreateAndPatchAll(typeof(HarpoonDash_Patcher));
+            Harmony.CreateAndPatchAll(typeof(ToolsHUD_Patcher));
 #if DEBUG
             Invoke(nameof(TryStartGame), 0.5f);
 #endif
             AimingManager.IsAiming = Settings.GetBool("AimingEnabledAtStart", true);
+            if (Input.GetJoystickNames().Length > 0) AimingManager.UsingJoystick = true;
         }
 
         private void TryStartGame() {
             if (gm) {
                 var obj = gm.gameObject;
-                Debug.Log(obj);
+                //Debug.Log(obj);
                 gm.LoadGameFromUI(2);
             }
             else {
@@ -120,25 +126,41 @@ namespace silksong_Aiming {
         internal static float LastClickTime;
         internal static int AttackKeyActive = 1;
         internal static bool UsingJoystick;
+        internal static bool _UseHarpoonDashAiming;
+        internal static bool ReplaceAttackKey;
+        internal static bool ShouldUpdateHUD;
+        internal static bool DefaultJoystickDir;
+        internal static bool OnWallWhenGetDir;
         public static bool UseAttackKeyOverlay() {
-            return IsAiming && !UsingJoystick;
+            return IsAiming && ReplaceAttackKey;
         }
 
         public static Vector3 RefreshMousePosition() {
+            DefaultJoystickDir = false;
+            OnWallWhenGetDir = false;
             if (!UsingJoystick) {
-            // 获取鼠标世界坐标
-            Vector3 mousePos = Input.mousePosition;
-            mousePos.z = -UnityEngine.Camera.main.transform.position.z;
-            MousePosW = UnityEngine.Camera.main.ScreenToWorldPoint(mousePos);
-            MousePosW.z = 0; // 确保Z坐标为0
+                // 获取鼠标世界坐标
+                Vector3 mousePos = Input.mousePosition;
+                //Debug.Log(UnityEngine.Camera.main);
+                mousePos.z = -UnityEngine.Camera.main.transform.position.z;
+                MousePosW = UnityEngine.Camera.main.ScreenToWorldPoint(mousePos);
+                MousePosW.z = 0; // 确保Z坐标为0
+                //Debug.Log("update Mouse " + MousePosW);
             }
             // 手柄方向的偏移代替鼠标位置
             else {
-                var heroPos = Main.gm.hero_ctrl.transform.position;
-                var heroFacingRight = Main.gm.hero_ctrl.cState.facingRight;
+                HeroController hero = Main.gm.hero_ctrl;
+                var heroPos = hero.transform.position;
+                var heroFacingRight = hero.cState.facingRight;
                 Vector3 joystickDir = InputManager.ActiveDevice.RightStick.Vector;
-                if(joystickDir.magnitude < 0.3) {
+                if (joystickDir.magnitude < 0.3) {
                     joystickDir = heroFacingRight ? Vector2.right : Vector2.left;
+                    //Debug.Log("wallSliding " + hero.cState.wallSliding);
+                    DefaultJoystickDir = true;
+                    if (hero.cState.wallSliding) {
+                        OnWallWhenGetDir = true;
+                        joystickDir.x = -joystickDir.x;
+                    }
                 }
                 else {
                     joystickDir.Normalize();
@@ -146,6 +168,7 @@ namespace silksong_Aiming {
 
                 //Debug.Log(Mathf.Atan2(dir.y,dir.x) * Mathf.Rad2Deg);
                 MousePosW = heroPos + joystickDir * 30;
+                //Debug.Log("update Mouse UsingJoystick" + MousePosW);
             }
             return MousePosW;
         }
@@ -157,6 +180,10 @@ namespace silksong_Aiming {
         }
         public static Vector2 GetDirectionToMouse(Vector3 posW) {
             return (MousePosW - posW).normalized;
+        }
+
+        internal static bool UseHarpoonDashAiming() {
+            return IsAiming && _UseHarpoonDashAiming;
         }
     }
     public class ConsoleLogListener : ILogListener {
@@ -216,7 +243,7 @@ namespace silksong_Aiming {
                 fsm.StartCoroutine(ExecuteNextFrame(fsm));
             }
             else {
-                Debug.Log($"当前状态: {fsm.Fsm.ActiveState.Name} : {fsm.Fsm.ActiveState.Description}");
+                //Debug.Log($"当前状态: {fsm.Fsm.ActiveState.Name} : {fsm.Fsm.ActiveState.Description}");
                 yield break;
             }
         }
