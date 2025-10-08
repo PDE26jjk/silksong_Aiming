@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace silksong_Aiming {
     class HitEnemy_Patcher {
-        static bool silkGainWhenAimingToolHit;
         static bool hasGetSetting = false;
-        static List<string> toolsToAddSilk; 
+        static List<string> toolsToAddSilk;
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HealthManager), "TakeDamage")]
         public static void HealthManager_TakeDamage_pre(HealthManager __instance, HitInstance hitInstance) {
@@ -16,11 +15,19 @@ namespace silksong_Aiming {
             //Debug.Log(hitInstance.AttackType);
             //Debug.Log(hitInstance.RepresentingTool.name);
             if (!hasGetSetting) {
-                silkGainWhenAimingToolHit = Settings.GetBool("SilkGainWhenAimingToolHit", false);
-                toolsToAddSilk = Settings.GetStringList("ToolsToAddSilk");
+                var getStringList = (string value) => {
+                    return value.Split(',')
+                                .Select(s => s.Trim())
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .ToList();
+                };
+                toolsToAddSilk = getStringList(Settings.ToolsToAddSilk.Value);
+                Settings.ToolsToAddSilk.SettingChanged += (sender, e) => {
+                    toolsToAddSilk = getStringList(Settings.ToolsToAddSilk.Value);
+                };
                 hasGetSetting = true;
             }
-            if (!silkGainWhenAimingToolHit) return;
+            if (!Settings.SilkGainWhenAimingToolHit.Value) return;
             if (hitInstance.RepresentingTool == null) return;
             string toolName = hitInstance.RepresentingTool.name;
             if (hitInstance.AttackType == AttackTypes.Generic) {

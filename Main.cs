@@ -12,7 +12,7 @@ using System.Collections;
 using InControl;
 
 namespace silksong_Aiming {
-    [BepInPlugin("4DDE5A40-E435-E161-9E6D-4D384476C74D", "Aiming", "0.0.1")]
+    [BepInPlugin("com.PDE26jjk.Aiming", "Aiming", "0.0.5")]
     public class Main : BaseUnityPlugin {
         private ConsoleController consoleController;
         private InputController mouseCircleRenderer;
@@ -22,49 +22,64 @@ namespace silksong_Aiming {
         public static HeroController hero => gm != null ? gm.hero_ctrl : null;
         public static GameManager _gm;
         private ILogListener logListener;
+        public static Main instance => _instance;
+        public static Main _instance;
+        public static bool hasSetup = false;
         //private bool found = false;
         private void Awake() {
-            Settings.Read();
+            _instance = this;
 #if DEBUG
             Logger.LogInfo("Console Mod Initialized! Press ~ to open console.");
             //Invoke(nameof(CreateConsoleIfNeeded), 0.5f);
             CreateConsoleIfNeeded();
             Harmony.CreateAndPatchAll(typeof(AtStart));
 #endif
-            CreateAimingControllerIfNeeded();
-            Harmony.CreateAndPatchAll(typeof(HeroController_ThrowTool_Patcher));
-            Harmony.CreateAndPatchAll(typeof(HeroInput_Patcher));
-            Harmony.CreateAndPatchAll(typeof(HitEnemy_Patcher));
-            Harmony.CreateAndPatchAll(typeof(AimingPatcher));
-            Harmony.CreateAndPatchAll(typeof(SetStateLogger));
+            WaitForGameManager();
 
-            Harmony.CreateAndPatchAll(typeof(Tripin_Patcher));
-            Harmony.CreateAndPatchAll(typeof(Fisherpin_Patcher));
-            Harmony.CreateAndPatchAll(typeof(Boomerang_Patcher));
-            Harmony.CreateAndPatchAll(typeof(Conch_Patcher));
-            Harmony.CreateAndPatchAll(typeof(RosaryCannon_Patcher));
-            Harmony.CreateAndPatchAll(typeof(WebshotWeaver_Patcher));
-            Harmony.CreateAndPatchAll(typeof(WebshotForge_Patcher));
+        }
+        private void WaitForGameManager() {
+            if (gm) {
+                CreateAimingControllerIfNeeded();
+                Harmony.CreateAndPatchAll(typeof(HeroController_ThrowTool_Patcher));
+                Harmony.CreateAndPatchAll(typeof(HeroInput_Patcher));
+                Harmony.CreateAndPatchAll(typeof(HitEnemy_Patcher));
+                Harmony.CreateAndPatchAll(typeof(AimingPatcher));
+                Harmony.CreateAndPatchAll(typeof(SetStateLogger));
 
-            Harmony.CreateAndPatchAll(typeof(HarpoonDash_Patcher));
-            Harmony.CreateAndPatchAll(typeof(ToolsHUD_Patcher));
+                Harmony.CreateAndPatchAll(typeof(Tripin_Patcher));
+                Harmony.CreateAndPatchAll(typeof(Fisherpin_Patcher));
+                Harmony.CreateAndPatchAll(typeof(Boomerang_Patcher));
+                Harmony.CreateAndPatchAll(typeof(Conch_Patcher));
+                Harmony.CreateAndPatchAll(typeof(RosaryCannon_Patcher));
+                Harmony.CreateAndPatchAll(typeof(WebshotWeaver_Patcher));
+                Harmony.CreateAndPatchAll(typeof(WebshotForge_Patcher));
+
+                Harmony.CreateAndPatchAll(typeof(HarpoonDash_Patcher));
+                Harmony.CreateAndPatchAll(typeof(SilkSpear_Patcher));
+                Harmony.CreateAndPatchAll(typeof(SilkCharge_Patcher));
+                Harmony.CreateAndPatchAll(typeof(ToolsHUD_Patcher));
 #if DEBUG
-            Invoke(nameof(TryStartGame), 0.5f);
+                TryStartGame();
 #endif
-            AimingManager.IsAiming = Settings.GetBool("AimingEnabledAtStart", true);
-            if (Input.GetJoystickNames().Length > 0) AimingManager.UsingJoystick = true;
+                GetSettings();
+                if (Input.GetJoystickNames().Length > 0) AimingManager.UsingJoystick = true;
+                hasSetup = true;
+            }
+            else {
+                //Debug.Log("No gameManager"); 
+                Invoke(nameof(WaitForGameManager), 0.5f);
+            }
         }
 
         private void TryStartGame() {
-            if (gm) {
-                var obj = gm.gameObject;
-                //Debug.Log(obj);
-                gm.LoadGameFromUI(2);
-            }
-            else {
-                //Debug.Log("No gameManager");
-                Invoke(nameof(TryStartGame), 0.5f);
-            }
+            gm.LoadGameFromUI(2);
+        }
+        private void GetSettings() {
+            string lang = "EN"; // DE, EN, ES, FR, IT, JA, KO, PT, RU, ZH
+            TeamCherry.Localization.LocalizationProjectSettings.TryGetSavedLanguageCode(out lang);
+            Debug.Log("TryGetSavedLanguageCode-----------------------------------------------" + lang);
+
+            Settings.Initialize(this.Config, lang);
         }
 
         private void CreateConsoleIfNeeded() {
@@ -121,13 +136,13 @@ namespace silksong_Aiming {
     }
 
     public class AimingManager {
-        public static bool IsAiming = true;
+        public static bool IsAiming => Settings.AimingEnabled.Value;
         internal static Vector3 MousePosW = Vector3.zero;
         internal static float LastClickTime;
         internal static int AttackKeyActive = 1;
         internal static bool UsingJoystick;
-        internal static bool _UseHarpoonDashAiming;
-        internal static bool ReplaceAttackKey;
+        internal static bool _UseHarpoonDashAiming => Settings.UseHarpoonDashAiming.Value;
+        internal static bool ReplaceAttackKey => Settings.ReplaceAttackKey.Value;
         internal static bool ShouldUpdateHUD;
         internal static bool DefaultJoystickDir;
         internal static bool OnWallWhenGetDir;
@@ -226,26 +241,12 @@ namespace silksong_Aiming {
         }
 
     }
-    [HarmonyPatch(typeof(PlayMakerFSM), "SendEvent")]
     public class SetStateLogger {
-        public static void Prefix(PlayMakerFSM __instance, string eventName) {
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayMakerFSM), "SendEvent")]
+        public static void SendEvent(PlayMakerFSM __instance, string eventName) {
             //Debug.Log($"[FSM事件] {__instance.name} 事件: {eventName}");
-            //if (eventName.Contains("PIN")) {
-            //    // 下一帧再执行
-            //    __instance.StartCoroutine(ExecuteNextFrame(__instance));
-            //}
         }
-        private static IEnumerator ExecuteNextFrame(PlayMakerFSM fsm) {
-            // 等待一帧
-            if (fsm.Fsm.ActiveState.Name.Contains("Idle")) {
-                //Debug.Log($"Idle...");
-                yield return new WaitForSeconds(0.01f);
-                fsm.StartCoroutine(ExecuteNextFrame(fsm));
-            }
-            else {
-                //Debug.Log($"当前状态: {fsm.Fsm.ActiveState.Name} : {fsm.Fsm.ActiveState.Description}");
-                yield break;
-            }
-        }
-    }
+
+    } 
 }

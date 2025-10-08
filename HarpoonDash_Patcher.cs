@@ -5,6 +5,7 @@ using System.Linq;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace silksong_Aiming {
     class HarpoonDash_Patcher {
@@ -31,9 +32,33 @@ namespace silksong_Aiming {
             if (needResetLocalRotate) {
                 //Debug.Log("resetLocalRotate///////////////////");
                 var hero = Main.gm.hero_ctrl;
-                hero.transform.SetLocalRotation2D(0);
+                foreach (var obj in objectsNeedToReset) {
+                    obj.transform.localRotation = Quaternion.identity;
+                }
                 needResetLocalRotate = false;
+                //hero.StartCoroutine(OffsetToZeroCoroutine());
+                hero.transform.SetLocalRotation2D(0f);
+                //Collider2D collider2D = hero.GetComponent<BoxCollider2D>();
+                //collider2D.offset = Vector2.up * -.49f;
             }
+        }
+        private static IEnumerator OffsetToZeroCoroutine() {
+            var transform = Main.gm.hero_ctrl.transform;
+            Collider2D collider2D = transform.GetComponent<BoxCollider2D>();
+            float offstTo = -.49f;
+            float startOffset = collider2D.offset.y;
+            float time = 0f;
+            float duration = 1f;
+            AnimationCurve easingCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+            while (time < duration) {
+                time += Time.deltaTime;
+                float t = easingCurve.Evaluate(time / duration);
+                float newOffset = Mathf.Lerp(startOffset, offstTo, t);
+                collider2D.offset = Vector2.up * newOffset;
+                //Debug.Log(newOffset);
+                yield return null;
+            }
+            collider2D.offset = Vector2.up * -.49f;
         }
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SendMessage), "DoSendMessage")]
@@ -53,7 +78,7 @@ namespace silksong_Aiming {
             string[] tohandle = { "Hornet_harpoon_dash", "Harpoon Dash Damager" };
             if (tohandle.Contains(obj.name)) {
                 //obj.SetActiveChildren(false);
-                //WebshotWeaver_Patcher.PrintChildren(obj);
+                WebshotWeaver_Patcher.PrintChildren(obj);
             }
         }
         static float threadLength = 10.5f;
@@ -170,7 +195,7 @@ namespace silksong_Aiming {
                 return true; // 出错时执行原始方法
             }
         }
-        
+
         private static object CreateHitCheck(Type hitCheckType, Type hitTypesType, string hitTypeName, RaycastHit2D hit) {
             // 创建 HitCheck 实例
             object hitCheck = Activator.CreateInstance(hitCheckType);
@@ -240,13 +265,15 @@ namespace silksong_Aiming {
             return;
         }
 
+        static HashSet<GameObject> objectsNeedToReset = new();
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ActivateGameObject), "DoActivateGameObject")]
         public static void SetNeedleBreakerPosition(ActivateGameObject __instance) {
             if (!AimingManager.UseHarpoonDashAiming()) return;
             string stateName = __instance.State.Name.ToString();
-            if (!__instance.State.Name.ToString().Contains("Throw")) return;
             var obj = __instance.Fsm.GetOwnerDefaultTarget(__instance.gameObject); ;
+            if (!obj) return;
+            if (!__instance.State.Name.ToString().Contains("Throw")) return;
             string[] tohandle = { "Harpoon Breaker", "Harpoon Breaker Extend" };
             if (tohandle.Contains(obj.name)) {
                 //Debug.Log(obj.name);
@@ -256,6 +283,7 @@ namespace silksong_Aiming {
                     angle += 180;
                 }
                 obj.transform.SetRotation2D(angle);
+                objectsNeedToReset.Add(obj);
                 //obj.transform.SetScaleX(Mathf.Sign(DirDash.x));
             }
         }
@@ -284,8 +312,11 @@ namespace silksong_Aiming {
                 AngleDash = Mathf.Atan2(DirDash.y, DirDash.x) * Mathf.Rad2Deg;
                 obj.transform.SetRotation2D(AngleDash);
                 obj.transform.SetScaleX(Mathf.Sign(DirDash.x));
+                objectsNeedToReset.Add(obj);
             }
         }
+
+        static GameObject heroBox;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Tk2dPlayAnimation), "DoPlayAnimation")]
@@ -313,13 +344,28 @@ namespace silksong_Aiming {
                     float angle = AngleDash - 90;
                     //OriginAngle = obj.transform.GetLocalRotation2D();
                     obj.transform.SetLocalRotation2D(angle); // reset at catch_end
+                    Main.hero.StartCoroutine(resetLocalRotateDelay());
+
                     needResetLocalRotate = true;
+                    if (!heroBox) {
+                        foreach (Transform child in obj.transform) {
+                            if (child.gameObject.name == "HeroBox") { heroBox = child.gameObject; break; }
+                        }
+                    }
+                    heroBox.transform.SetRotation2D(0);
+                    //Debug.Log("HeroBox -----------" + heroBox.transform.localRotation);
+                    objectsNeedToReset.Add(heroBox);
                 }
             }
             if (stateName == "Idle" || stateName == "Grab Anim") {
                 resetLocalRotate();
             }
 
+        }
+        static IEnumerator resetLocalRotateDelay() {
+            yield return new WaitForSeconds(0.7f);
+            //Debug.Log("resetLocalRotateDelay-----");
+            resetLocalRotate();
         }
 
         [HarmonyPrefix]
@@ -358,7 +404,6 @@ namespace silksong_Aiming {
             if (dis < 2) {
                 resetLocalRotate();
             }
-            //Debug.Log("ClampVelocity2D dis :" + (disLast - dis));
             disLast = dis;
             if (isNearTarget) {
                 __instance.xMin = -5;
@@ -388,13 +433,29 @@ namespace silksong_Aiming {
             var heroAnim = obj.GetComponent<IHeroAnimationController>();
             string clipName = __instance.clipName.Value;
             tk2dSpriteAnimationClip clip = ((heroAnim != null) ? heroAnim.GetClip(clipName) : _sprite.GetClipByName(clipName));
+
             if (clipName == "Harpoon Catch") {
 
                 float angle = AngleDash;
                 if (DirDash.x < 0) {
                     angle += 180;
                 }
+                if (DirDash.y < 0) {
+                    //var y = heroBox.transform.localRotation.y;
+                    Collider2D collider2D = obj.GetComponent<Collider2D>();
+                    //collider2D.offset += Vector2.up * 10f;
+                    //Debug.Log("HeroColl Y: " + collider2D.offset);
+                }
+                    
+                //var be = obj.gameObject.GetComponents<MonoBehaviour>();
+                //List<string> list = new List<string>();
+                //foreach (var item in be) {
+                //    list.Add(item.GetType().Name);
+                //}
+
+                //Debug.Log(string.Join(",", list));
                 obj.transform.SetLocalRotation2D(angle);
+                //heroBox.transform.SetRotation2D(0);
                 needResetLocalRotate = true;
             }
         }

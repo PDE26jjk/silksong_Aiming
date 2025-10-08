@@ -183,7 +183,7 @@ namespace silksong_Aiming {
                 if (!Platform.Current.IsMouseSupported) {
                     return;
                 }
-                AimingManager.IsAiming = !AimingManager.IsAiming;
+                //AimingManager.IsAiming = !AimingManager.IsAiming;
                 //Debug.Log($"show mouse {AimingManager.IsAiming}");
             }
             else if (command.Equals("s")) {

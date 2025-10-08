@@ -4,9 +4,8 @@ using UnityEngine;
 
 namespace silksong_Aiming {
     class ToolsHUD_Patcher {
-        static FieldInfo radialImageInfo;
+        //static FieldInfo radialImageInfo;
         static FieldInfo bindingInfo;
-        static Color ActiveColor = Color.black;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(RadialHudIcon), "Update")]
@@ -40,10 +39,7 @@ namespace silksong_Aiming {
                     || (binding == AttackToolBinding.Neutral && AimingManager.AttackKeyActive == 2)
                     || (binding == AttackToolBinding.Down && AimingManager.AttackKeyActive == 3)
                     ) {
-                    if(ActiveColor == Color.black) { 
-                        ActiveColor = Settings.GetColor("ActiveToolColor", new Color32(234, 204, 128, 255));
-                    }
-                    color = ActiveColor;
+                    color = Settings.ActiveToolColor.Value;
                     __result = true;
                     return false;
                 }
