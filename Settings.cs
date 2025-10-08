@@ -81,6 +81,12 @@ namespace silksong_Aiming {
         public static ConfigEntry<Color> CrosshairColor { get; private set; }
 
         [Section("Visual")]
+        [Description("EN", "Use Crosshair Image", "Use custom crosshair image")]
+        [Description("ZH", "使用准星图片", "启用自定义准星图片")]
+        [DefaultValue(true)]
+        public static ConfigEntry<bool> UseCrosshairImage { get; private set; }
+
+        [Section("Visual")]
         [Description("EN", "CrosshairI Image File", "Path of crosshairI Image File")]
         [Description("ZH", "准星图片路径", "准星图片路径")]
         [DefaultValue("")]
@@ -92,6 +98,11 @@ namespace silksong_Aiming {
         [DefaultValue(1.0f)]
         [Range(0.0f, 1.0f)]
         public static ConfigEntry<float> CrosshairAlpha { get; private set; }
+        [Section("Visual")]
+        [Description("EN", "Crosshair Vibration", "Enable crosshair vibration effect")]
+        [Description("ZH", "准星震动", "启用准星震动效果")]
+        [DefaultValue(false)]
+        public static ConfigEntry<bool> CrosshairVibration { get; private set; }
 
         // ===== Gain Silk Settings =====
         [Section("SilkGain")]

@@ -187,7 +187,7 @@ namespace silksong_Aiming {
         public static void PlaySlashStart(NailSlashTravel __instance) {
 
             Vector2 pos = __instance.transform.position;
-            DebugLineRenderer.DrawLine(pos + Vector2.up * 5, pos + Vector2.up * -5, Color.green, 2);
+            //DebugLineRenderer.DrawLine(pos + Vector2.up * 5, pos + Vector2.up * -5, Color.green, 2);
         }
 
         //[HarmonyPrefix]
