@@ -12,135 +12,202 @@ namespace silksong_Aiming {
 
         #region Configuration Properties
         private static Dictionary<string, Dictionary<string, string>> Sections = new() {
+            ["Global"] = new(){
+                { "EN", "0 Global" },
+                { "ZH", "0 全局" }
+            },
+            ["Mouse"] = new(){
+                { "EN", "1 Mouse" },
+                { "ZH", "1 键鼠" }
+            },
+            ["Controller"] = new(){
+                { "EN", "2 Controller" },
+                { "ZH", "2 手柄" }
+            },
             ["Other"] = new() {
-                { "EN","Other" },
-                { "ZH","其他" }
+                { "EN","3 Other" },
+                { "ZH","3 其他" }
             },
-            ["Aiming"] = new(){
-                { "EN", "Aiming" },
-                { "ZH", "瞄准" }
+            ["Warning"] = new() {
+                { "EN","4 Warning feature" },
+                { "ZH","4 有风险功能" }
             },
-            ["Visual"] = new(){
-                { "EN", "Visual" },
-                { "ZH", "视觉" }
-            },
+
         };
 
+        public enum ControllerChangeBindModeEnum {
+            [System.ComponentModel.Description("L3 + DPad")]
+            L3DPad,
+            [System.ComponentModel.Description("L3 + Left Joystick")]
+            L3LeftJoystick,
+            [System.ComponentModel.Description("DPad Only")]
+            DPad,
+        }
 
         // ===== Aiming Settings =====
 
-        [Section("Aiming")]
+        #region Global
+        [Section("Global")]
         [Description("EN", "Aiming Enabled", "Whether aiming is enabled")]
         [Description("ZH", "启用瞄准", "是否启用瞄准模式")]
         [DefaultValue(true)]
         public static ConfigEntry<bool> AimingEnabled { get; private set; }
 
-        [Section("Aiming")]
+        [Section("Global")]
+        [Description("EN", "Replace Attack Key", "Replace the default attack key binding")]
+        [Description("ZH", "替换攻击键", "替换默认的攻击键绑定")]
+        [DefaultValue(true)]
+        public static ConfigEntry<bool> ReplaceAttackKey { get; private set; }
+
+        [Section("Global")]
+        [Description("EN", "Up Slash Angle", "Angle for upward slashing attacks")]
+        [Description("ZH", "上劈角度", "向上劈砍攻击的角度")]
+        [DefaultValue(30)]
+        [Range(0f, 90f)]
+        public static ConfigEntry<float> UpSlashAngle { get; private set; }
+
+        [Section("Global")]
+        [Description("EN", "Down Slash Angle", "Angle for downward slashing attacks")]
+        [Description("ZH", "下劈角度", "向下劈砍攻击的角度")]
+        [DefaultValue(45)]
+        [Range(0f, 90f)]
+        public static ConfigEntry<float> DownSlashAngle { get; private set; }
+
+        #endregion
+
+        #region Mouse
+        [Section("Mouse")]
         [Description("EN", "Toggle Aiming Key", "Key to toggle aiming mode")]
         [Description("ZH", "切换瞄准键", "切换瞄准模式的按键")]
         [DefaultValue(KeyCode.Z)]
         public static ConfigEntry<KeyboardShortcut> ToggleAimingKey { get; private set; }
 
-        // ===== Skill Key Bindings =====
-        [Section("SkillKeys")]
+        [Section("Mouse")]
         [Description("EN", "Switch To Up Skill Key", "Key to switch to the top skill")]
         [Description("ZH", "切换到上技能键", "切换到顶部技能的按键")]
         [DefaultValue(KeyCode.Alpha1)]
         public static ConfigEntry<KeyboardShortcut> SwitchToUpSkillKey { get; private set; }
 
-        [Section("SkillKeys")]
+        [Section("Mouse")]
         [Description("EN", "Switch To Middle Skill Key", "Key to switch to the middle skill")]
         [Description("ZH", "切换到中技能键", "切换到中间技能的按键")]
         [DefaultValue(KeyCode.Alpha2)]
         public static ConfigEntry<KeyboardShortcut> SwitchToMiddleSkillKey { get; private set; }
 
-        [Section("SkillKeys")]
+        [Section("Mouse")]
         [Description("EN", "Switch To Down Skill Key", "Key to switch to the bottom skill")]
         [Description("ZH", "切换到下技能键", "切换到底部技能的按键")]
         [DefaultValue(KeyCode.Alpha3)]
         public static ConfigEntry<KeyboardShortcut> SwitchToDownSkillKey { get; private set; }
 
-        [Section("SkillKeys")]
+        [Section("Mouse")]
         [Description("EN", "Switch To Attack Key", "Key to switch to attack mode")]
         [Description("ZH", "切换到攻击键", "切换到攻击模式的按键")]
         [DefaultValue(KeyCode.Alpha4)]
         public static ConfigEntry<KeyboardShortcut> SwitchToAttackKey { get; private set; }
 
-        // ===== Visual Settings =====
-        [Section("Visual")]
+
+        [Section("Mouse")]
         [Description("EN", "Crosshair Size", "Size of the aiming crosshair")]
         [Description("ZH", "准星大小", "瞄准准星的大小")]
         [DefaultValue(0.1f)]
         [Range(0.01f, 1.0f)]
         public static ConfigEntry<float> CrosshairSize { get; private set; }
 
-        [Section("Visual")]
+        [Section("Mouse")]
         [Description("EN", "Crosshair Color", "Color of the aiming crosshair")]
         [Description("ZH", "准星颜色", "瞄准准星的颜色")]
         [DefaultValue("#66ccff")]
         public static ConfigEntry<Color> CrosshairColor { get; private set; }
 
-        [Section("Visual")]
-        [Description("EN", "Use Crosshair Image", "Use custom crosshair image")]
-        [Description("ZH", "使用准星图片", "启用自定义准星图片")]
-        [DefaultValue(true)]
-        public static ConfigEntry<bool> UseCrosshairImage { get; private set; }
-
-        [Section("Visual")]
-        [Description("EN", "CrosshairI Image File", "Path of crosshairI Image File")]
-        [Description("ZH", "准星图片路径", "准星图片路径")]
-        [DefaultValue("")]
-        public static ConfigEntry<string> CrosshairImageFile { get; private set; }
-
-        [Section("Visual")]
+        [Section("Mouse")]
         [Description("EN", "Crosshair Alpha", "Transparency of the aiming crosshair")]
         [Description("ZH", "准星透明度", "瞄准准星的透明度")]
         [DefaultValue(1.0f)]
         [Range(0.0f, 1.0f)]
         public static ConfigEntry<float> CrosshairAlpha { get; private set; }
-        [Section("Visual")]
+
+        [Section("Mouse")]
+        [Description("EN", "Use Crosshair Image", "Use custom crosshair image")]
+        [Description("ZH", "使用准星图片", "启用自定义准星图片")]
+        [DefaultValue(true)]
+        public static ConfigEntry<bool> UseCrosshairImage { get; private set; }
+
+        [Section("Mouse")]
+        [Description("EN", "CrosshairI Image File", "Path of crosshairI Image File")]
+        [Description("ZH", "准星图片路径", "准星图片路径")]
+        [DefaultValue("")]
+        public static ConfigEntry<string> CrosshairImageFile { get; private set; }
+
+        [Section("Mouse")]
         [Description("EN", "Crosshair Vibration", "Enable crosshair vibration effect")]
         [Description("ZH", "准星震动", "启用准星震动效果")]
         [DefaultValue(false)]
         public static ConfigEntry<bool> CrosshairVibration { get; private set; }
+        #endregion
 
-        // ===== Gain Silk Settings =====
-        [Section("SilkGain")]
+        #region Controller
+        [Section("Controller")]
+        [Description("EN", "Switching Tools Mode", "Method of Switching Tools on Controller")]
+        [Description("ZH", "切换工具的方式", "手柄切换工具的方式")]
+        [DefaultValue(ControllerChangeBindModeEnum.DPad)]
+        public static ConfigEntry<ControllerChangeBindModeEnum> ControllerChangeBindMode { get; private set; }
+
+        [Section("Controller")]
+        [Description("EN", "Enable Direction Indicator", "Show direction indicator when the right joystick is active")]
+        [Description("ZH", "使用方向指示器", "在右摇杆起作用时显示方向指示器")]
+        [DefaultValue(true)]
+        public static ConfigEntry<bool> UseDirectionIndicator { get; private set; }
+
+        [Section("Controller")]
+        [Description("EN", "Direction Indicator Alpha", "Transparency of the direction indicator")]
+        [Description("ZH", "方向指示器透明度", "方向指示器的透明度")]
+        [DefaultValue(1.0f)]
+        [Range(0.0f, 1.0f)]
+        public static ConfigEntry<float> DirectionAlpha { get; private set; }
+
+        [Section("Controller")]
+        [Description("EN", "Direction Indicator Render Order", "Render order of the direction indicator")]
+        [Description("ZH", "方向指示器渲染层级", "方向指示器的渲染层级")]
+        [DefaultValue(0)]
+        public static ConfigEntry<int> DirectionRenderOrder { get; private set; }
+        #endregion
+
+        #region Other
+
+        [Section("Other")]
+        [Description("EN", "Active Tool Color", "Color for the currently active tool HUD")]
+        [Description("ZH", "活动工具颜色", "当前活动工具的HUD颜色")]
+        [DefaultValue("#EACC80")]
+        public static ConfigEntry<Color> ActiveToolColor { get; private set; }
+
+
+        [Section("Other")]
         [Description("EN", "Silk Gain When Aiming Tool Hit", "Gain silk when hitting with aiming tools")]
         [Description("ZH", "瞄准工具命中获得丝绸", "使用瞄准工具命中时获得丝绸")]
         [DefaultValue(true)]
         public static ConfigEntry<bool> SilkGainWhenAimingToolHit { get; private set; }
 
-        [Section("SilkGain")]
+        [Section("Other")]
         [Description("EN", "Tools To Add Silk", "List of tools that add silk when hitting")]
         [Description("ZH", "获得丝绸的工具", "命中时获得丝绸的工具列表")]
         [DefaultValue("Straight Pin, Tri Pin, Harpoon, Curve Claws, Curve Claws Upgraded, Shakra Ring, Conch Drill, WebShot Forge, WebShot Architect, WebShot Weaver")]
         public static ConfigEntry<string> ToolsToAddSilk { get; private set; }
+        #endregion
 
-        // ===== Other Settings =====
-        [Section("Other")]
-        [Description("EN", "Replace Attack Key", "Replace the default attack key binding")]
-        [Description("ZH", "替换攻击键", "替换默认的攻击键绑定")]
-        [DefaultValue(true)]
-        public static ConfigEntry<bool> ReplaceAttackKey { get; private set; }
-
-        [Section("Other")]
-        [Description("EN", "Use DPad To Change Tools", "Use DPad for changing tools")]
-        [Description("ZH", "使用方向键切换工具", "使用方向键切换工具")]
-        [DefaultValue(true)]
-        public static ConfigEntry<bool> UseDPadToChangeTools { get; private set; }
-
-        [Section("Other")]
-        [Description("EN", "Use Harpoon Dash Aiming", "Enable aiming for harpoon dash")]
-        [Description("ZH", "使用鱼叉冲刺瞄准", "启用鱼叉冲刺的瞄准功能")]
+        #region Warning
+        [Section("Warning")]
+        [Description("EN", "Enable Harpoon Dash Aiming", "Enable aiming for harpoon dash")]
+        [Description("ZH", "使用飞针冲刺瞄准", "启用飞针的瞄准功能")]
         [DefaultValue(false)]
         public static ConfigEntry<bool> UseHarpoonDashAiming { get; private set; }
 
-        [Section("Other")]
-        [Description("EN", "Active Tool Color", "Color for the currently active tool")]
-        [Description("ZH", "活动工具颜色", "当前活动工具的颜色")]
-        [DefaultValue("#EACC80")]
-        public static ConfigEntry<Color> ActiveToolColor { get; private set; }
+        [Section("Warning")]
+        [Description("EN", "Enable Silk Charge Aiming", "Enable aiming for silk charge")]
+        [Description("ZH", "使用丝刃镖瞄准", "启用丝刃镖的瞄准功能")]
+        [DefaultValue(false)]
+        public static ConfigEntry<bool> UseSilkChargeAiming { get; private set; }
+        #endregion
 
         #endregion
 
@@ -151,7 +218,9 @@ namespace silksong_Aiming {
                 .Where(p => p.PropertyType.IsGenericType &&
                             p.PropertyType.GetGenericTypeDefinition() == typeof(ConfigEntry<>))
                 .ToList();
+            int order = configProperties.Count;
             foreach (var property in configProperties) {
+                order--;
                 // 获取配置属性
                 var sectionAttr = property.GetCustomAttribute<SectionAttribute>();
                 var descAttr = property.GetCustomAttributes<DescriptionAttribute>().ToList();
@@ -191,16 +260,18 @@ namespace silksong_Aiming {
                     defaultValue = propertyType.IsValueType ? Activator.CreateInstance(propertyType) : null;
                 }
 
+                //Debug.Log("key------"+keyName);
                 // 创建配置描述
                 ConfigDescription configDesc;
                 if (rangeAttr != null) {
                     configDesc = new ConfigDescription(
                         description,
-                        new AcceptableValueRange<float>(rangeAttr.Min, rangeAttr.Max)
+                        new AcceptableValueRange<float>(rangeAttr.Min, rangeAttr.Max),
+                        new ConfigurationManagerAttributes { Order = order }
                     );
                 }
                 else {
-                    configDesc = new ConfigDescription(description);
+                    configDesc = new ConfigDescription(description, null, new ConfigurationManagerAttributes { Order = order });
                 }
 
                 defaultValue = ProcessSpecialTypes(defaultValue, propertyType);

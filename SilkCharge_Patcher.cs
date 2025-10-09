@@ -21,9 +21,10 @@ namespace silksong_Aiming {
         static Vector2 Dir;
         [HarmonyPostfix]
         [HarmonyPatch(typeof(GetHeroCState), "OnEnter")]
-        public static void FlipAndRotation(HeroControllerMethods __instance) {
+        public static void FlipHero(HeroControllerMethods __instance) {
+            if (!AimingManager.IsAiming) return;
             string stateName = __instance.State.Name.ToString();
-            if (!__instance.State.Name.ToString().Contains("Charge Flip?")) return;
+            if (!stateName.Contains("Charge Flip?")) return;
             var hero = Main.hero;
             Dir = AimingManager.GetDirectionToMouse(hero.transform.position);
             var angle = AimingManager.GetAngleToMouse(hero.transform.position);
@@ -40,14 +41,18 @@ namespace silksong_Aiming {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Tk2dPlayAnimationWithEvents), "DoPlayAnimationWithEvents")]
-        public static void catch_begin(Tk2dPlayAnimationWithEvents __instance) {
+        public static void ChargeStart(Tk2dPlayAnimationWithEvents __instance) {
             string stateName = __instance.State.Name.ToString();
             if (!stateName.Contains("Silk Charge")) return;
+            var hero = Main.hero;
+            if (!AimingManager.UseSilkChargeAiming()) {
+                hero.transform.localRotation = Quaternion.identity;
+                return;
+            }
             GameObject obj = __instance.Fsm.GetOwnerDefaultTarget(__instance.gameObject);
             var spriteAnimator = obj.GetComponent<tk2dSpriteAnimator>();
             Debug.Log("Tk2dPlayAnimationWithEvents-------------: " + stateName);
             Debug.Log(__instance.clipName);
-            var hero = Main.hero;
             var angle = AimingManager.GetAngleToMouse(hero.transform.position);
             if (Dir.x < 0) {
                 angle += 180;
@@ -84,19 +89,21 @@ namespace silksong_Aiming {
         public static void Rotation(SetVelocity2d __instance) {
             string stateName = __instance.State.Name.ToString();
             if (!stateName.Contains("Silk Charge Start")) return;
-            var hero = Main.hero;
+            if (!AimingManager.UseSilkChargeAiming()) {
+                __instance.everyFrame = false;
+                return;
+            }
             __instance.everyFrame = true;
-            //var dir = AimingManager.GetDirectionToMouse(hero.transform.position);
             Debug.Log("Charge SetVelocity2d: OnEnter " + __instance.vector);
-            __instance.vector = Dir * __instance.vector.Value.magnitude;
+            //__instance.vector = Dir * __instance.vector.Value.magnitude;
         }
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(SetVelocity2d), "DoSetVelocity")]
         public static void Rotation2(SetVelocity2d __instance) {
+            if (!AimingManager.UseSilkChargeAiming()) return;
             string stateName = __instance.State.Name.ToString();
             if (!stateName.Contains("Silk Charge Start")) return;
             var hero = Main.hero;
-            __instance.everyFrame = true;
             //var dir = AimingManager.GetDirectionToMouse(hero.transform.position);
             var angle = AimingManager.GetAngleToMouse(hero.transform.position);
             GameObject obj = __instance.Fsm.GetOwnerDefaultTarget(__instance.gameObject);
@@ -104,8 +111,8 @@ namespace silksong_Aiming {
                 angle += 180;
             }
             obj.transform.SetRotation2D(angle);
-
-            Debug.Log("Charge SetVelocity2d: " + __instance.vector);
+            hero.GetComponent<Rigidbody2D>().linearVelocity = Dir * __instance.vector.Value.magnitude;
+            //Debug.Log("Charge SetVelocity2d: " + __instance.vector);
         }
     }
 }

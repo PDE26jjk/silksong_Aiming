@@ -12,18 +12,17 @@ namespace silksong_Aiming {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SendEventToRegister), "OnEnter")]
         public static void BeforeHarpoonDash(SendEventToRegister __instance) {
-            if (!AimingManager.UseHarpoonDashAiming()) return;
+            if (!AimingManager.IsAiming) return;
             //Debug.Log("SendEventToRegister: "+__instance.State.Name.ToString());
             if (!__instance.State.Name.ToString().Contains("Antic")) return;
             //Debug.Log("Can Do?  evenname:      " + __instance.eventName);
             var hero = Main.gm.hero_ctrl;
             AimingManager.RefreshMousePosition();
             var dir2mouse = AimingManager.GetDirectionToMouse(hero.gameObject.transform.position);
-            var heroController = Main.gm.hero_ctrl;
-            if (heroController != null) {
+            if (hero != null) {
                 // 方向不对就转身
-                if ((heroController.cState.facingRight ? 1 : -1) * Mathf.Sign(dir2mouse.x) < 0) {
-                    heroController.FlipSprite();
+                if ((hero.cState.facingRight ? 1 : -1) * Mathf.Sign(dir2mouse.x) < 0) {
+                    hero.FlipSprite();
                 }
             }            //__instance.Finish();
         }
@@ -368,6 +367,7 @@ namespace silksong_Aiming {
             resetLocalRotate();
         }
 
+        static bool isNearTarget;
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SetVelocityAsAngle), "OnEnter")]
         public static void HeroControllerMethods_DoSetVelocity_pre(SetVelocityAsAngle __instance) {
@@ -376,7 +376,7 @@ namespace silksong_Aiming {
             isNearTarget = false;
         }
 
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(SetVelocityAsAngle), "DoSetVelocity")]
         public static void SetVelocityAsAngle_Dash(SetVelocityAsAngle __instance) {
             if (!AimingManager.UseHarpoonDashAiming()) return;
@@ -384,20 +384,21 @@ namespace silksong_Aiming {
 
             GameObject obj = __instance.Fsm.GetOwnerDefaultTarget(__instance.gameObject);
             //Transform transform = obj.transform;
-            __instance.angle.Value = AngleDash;
+            //__instance.angle.Value = AngleDash;
+            var hero = Main.hero;
+            hero.GetComponent<Rigidbody2D>().linearVelocity = DirDash * __instance.speed.Value;
             //__instance.speed.Value = 100;
         }
 
-        static bool isNearTarget;
         static float disLast;
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ClampVelocity2D), "DoClampVelocity")]
         public static bool ClampVelocity2D_Dash(ClampVelocity2D __instance) {
-            if (!AimingManager.UseHarpoonDashAiming()) return true;
             if (!__instance.State.Name.ToString().Contains("Dash")) return true;
+            if (!AimingManager.UseHarpoonDashAiming()) return true;
             //return false;
             float dis = (needleTarget - (Vector2)Main.gm.hero_ctrl.transform.position).magnitude;
-
+            float maxVel = 5;
             if (disLast - dis > 0 && dis < 2) {
                 isNearTarget = true;
             }
@@ -405,13 +406,15 @@ namespace silksong_Aiming {
                 resetLocalRotate();
             }
             disLast = dis;
+            var hero = Main.hero;
+            var rb = hero.GetComponent<Rigidbody2D>();
+            Vector2 linearVelocity = rb.linearVelocity;
             if (isNearTarget) {
-                __instance.xMin = -5;
-                __instance.xMax = 5;
-                __instance.yMin = -5;
-                __instance.yMax = 5;
-                return true;
+                if (linearVelocity.x < -maxVel) linearVelocity.x =  -maxVel;
+                else if (linearVelocity.x > maxVel) linearVelocity.x =  maxVel;
+                rb.linearVelocity = linearVelocity;
             }
+
             return false;
         }
 
@@ -446,7 +449,7 @@ namespace silksong_Aiming {
                     //collider2D.offset += Vector2.up * 10f;
                     //Debug.Log("HeroColl Y: " + collider2D.offset);
                 }
-                    
+
                 //var be = obj.gameObject.GetComponents<MonoBehaviour>();
                 //List<string> list = new List<string>();
                 //foreach (var item in be) {

@@ -56,6 +56,7 @@ namespace silksong_Aiming {
 
             textureRenderer = gameObject.AddComponent<SpriteRenderer>();
             textureRenderer.sortingOrder = lineRenderer.sortingOrder;
+            Debug.Log("lineRenderer.sortingOrder---------" + lineRenderer.sortingOrder);
             textureRenderer.enabled = false;
         }
         private void RegisterConfigCallbacks() {
@@ -215,11 +216,11 @@ namespace silksong_Aiming {
         }
         private bool TryLoadCursorFromFile(string filePath) {
             try {
-                // 1. 检查文件是否存在
-                if (!File.Exists(filePath)) {
-                    Debug.LogError($"文件不存在: {filePath}");
-                    return false;
-                }
+                if (!filePath.StartsWith("http") && !filePath.StartsWith("\\"))
+                    if (!File.Exists(filePath)) {
+                        Debug.LogError($"文件不存在: {filePath}");
+                        return false;
+                    }
                 StartCoroutine(LoadTextureRoutine(filePath, (img) => {
                     cursorTexture = img;
                     Debug.Log("cursor texture: " + cursorTexture.width + ":" + cursorTexture.height);
@@ -239,7 +240,9 @@ namespace silksong_Aiming {
             }
         }
         private IEnumerator LoadTextureRoutine(string filePath, System.Action<Texture2D> callback) {
-            string url = "file://" + filePath.Replace("\\", "/");
+            string url = filePath;
+            if (!filePath.StartsWith("http"))
+                url = "file://" + filePath.Replace("\\", "/");
 
             using (WWW www = new WWW(url)) {
                 yield return www;
@@ -255,31 +258,32 @@ namespace silksong_Aiming {
         }
 
         private GameObject JoystickDirObj;
-        private SpriteRenderer JoystickDir;
+        private SpriteRenderer JoystickDirRenderer;
         void Update() {
-            if (!Main.gm || !Main.hero) return;
+            if (!GameManager.SilentInstance || !Main.hero) return;
             try {
-                JoystickDir.transform.parent.transform.ToString();
+                JoystickDirRenderer.transform.parent.transform.ToString();
                 Vector3 joystickDir = InputManager.ActiveDevice.RightStick.Vector;
-                if (joystickDir.magnitude > 0.3) {
-                    JoystickDir.enabled = true;
+                if (AimingManager.IsAiming && joystickDir.magnitude > 0.3 && Settings.UseDirectionIndicator.Value) {
+                    JoystickDirRenderer.enabled = true;
                     float angle = Mathf.Atan2(joystickDir.y, joystickDir.x) * Mathf.Rad2Deg;
                     if (Main.hero.cState.facingRight) {
-                        angle = 180-angle;
+                        angle = 180 - angle;
                     }
                     JoystickDirObj.transform.SetLocalRotation2D(angle);
+                    JoystickDirRenderer.material.color = new Color(1, 1, 1, Settings.DirectionAlpha.Value);
+                    JoystickDirRenderer.sortingOrder = Settings.DirectionRenderOrder.Value;
                 }
                 else {
-                    JoystickDir.enabled = false;
+                    JoystickDirRenderer.enabled = false;
                     JoystickDirObj.transform.SetLocalRotation2D(90);
                 }
             }
             catch (System.Exception) {
                 JoystickDirObj = new GameObject("__JoystickDir");
                 JoystickDirObj.transform.SetParent(Main.hero.transform);
-                JoystickDir = JoystickDirObj.AddComponent<SpriteRenderer>();
-                JoystickDir.sortingOrder = lineRenderer.sortingOrder;
-                JoystickDir.sprite = Sprite.Create(
+                JoystickDirRenderer = JoystickDirObj.AddComponent<SpriteRenderer>();
+                JoystickDirRenderer.sprite = Sprite.Create(
                         dirTexture,
                         new Rect(0, 0, dirTexture.width, dirTexture.height),
                         new Vector2(0.5f, 0.5f),
@@ -304,7 +308,7 @@ namespace silksong_Aiming {
             //Debug.Log(" lineRenderer.enabled " + lineRenderer.enabled);
 
             if (!UnityEngine.Camera.main) { return; }
-            if (!Main.gm || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
+            if (!GameManager.SilentInstance || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
                 return;
             }
             GetInput();
@@ -324,11 +328,12 @@ namespace silksong_Aiming {
                 transform.position = mouseWorldPos;
                 float scale = Settings.CrosshairSize.Value * 3;
                 transform.localScale = new Vector3(scale, scale, 1);
+                textureRenderer.material.color = new Color(1, 1, 1, Settings.CrosshairAlpha.Value);
             }
         }
         public void GetInput() {
 
-            if (!Main.gm || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
+            if (!GameManager.SilentInstance || !Main.gm.hero_ctrl || Main.gm.hero_ctrl.IsPaused()) {
                 return;
             }
 #if DEBUG
@@ -377,7 +382,7 @@ namespace silksong_Aiming {
                 //var sprite = Resources.Load<Sprite>(TargetSpriteName);
                 //Debug.Log(sprite);
 
-                Vector2 pos = JoystickDir.transform.position;
+                Vector2 pos = JoystickDirRenderer.transform.position;
                 Debug.Log(" JoystickDir.transform.position :" + pos);
                 DebugLineRenderer.DrawLine(pos + Vector2.up * 5, pos + Vector2.up * -5, Color.green, 2);
             }
@@ -392,53 +397,59 @@ namespace silksong_Aiming {
                     Settings.AimingEnabled.Value = !AimingManager.IsAiming;
                 }
             }
-            else
-            //if (Input.GetKeyDown(KeyCode.Joystick1Button9)) {
-            if (InputManager.ActiveDevice.LeftStickButton.WasPressed) {
-                if (!AimingManager.UsingJoystick && AimingManager.IsAiming) {
-                    AimingManager.UsingJoystick = true;
-                }
-                else {
-                    Settings.AimingEnabled.Value = !AimingManager.IsAiming;
-                }
-            }
+            //else
+            ////if (Input.GetKeyDown(KeyCode.Joystick1Button9)) {
+            //if (InputManager.ActiveDevice.LeftStickButton.WasPressed) {
+            //    if (!AimingManager.UsingJoystick && AimingManager.IsAiming) {
+            //        AimingManager.UsingJoystick = true;
+            //    }
+            //    else {
+            //        Settings.AimingEnabled.Value = !AimingManager.IsAiming;
+            //    }
+            //}
             Vector3 joystickDir = InputManager.ActiveDevice.RightStick.Vector;
             if (joystickDir.magnitude >= 0.5 && !AimingManager.UsingJoystick && AimingManager.IsAiming) {
                 AimingManager.UsingJoystick = true;
             }
             if (!AimingManager.IsAiming) { return; }
             if (Input.GetKeyDown(SwitchToUpSkillKey)) {
-                //Debug.Log("111111111");
                 AimingManager.AttackKeyActive = 1;
             }
             else if (Input.GetKeyDown(SwitchToMiddleSkillKey)) {
-                //Debug.Log("22222222222");
                 AimingManager.AttackKeyActive = 2;
             }
             else if (Input.GetKeyDown(SwitchToDownSkillKey)) {
-                //Debug.Log("3333333333");
                 AimingManager.AttackKeyActive = 3;
             }
             else if (Input.GetKeyDown(SwitchToAttackKey)) {
-                //Debug.Log("444444444");
                 AimingManager.AttackKeyActive = 4;
             }
-            if (Settings.UseDPadToChangeTools.Value) {
-                if (InputManager.ActiveDevice.DPadUp.WasPressed) {
-                    //Debug.Log("111111111");
-                    AimingManager.AttackKeyActive = 1;
+
+            Settings.ControllerChangeBindModeEnum mode = Settings.ControllerChangeBindMode.Value;
+            if (mode != Settings.ControllerChangeBindModeEnum.L3LeftJoystick) {
+                if ((mode == Settings.ControllerChangeBindModeEnum.L3DPad && InputManager.ActiveDevice.LeftStickButton.IsPressed)
+                        || mode == Settings.ControllerChangeBindModeEnum.DPad) {
+                    if (InputManager.ActiveDevice.DPadUp.WasPressed) {
+                        AimingManager.AttackKeyActive = 1;
+                    }
+                    else if (InputManager.ActiveDevice.DPadRight.WasPressed) {
+                        AimingManager.AttackKeyActive = 2;
+                    }
+                    else if (InputManager.ActiveDevice.DPadDown.WasPressed) {
+                        AimingManager.AttackKeyActive = 3;
+                    }
+                    else if (InputManager.ActiveDevice.DPadLeft.WasPressed) {
+                        AimingManager.AttackKeyActive = 4;
+                    }
                 }
-                else if (InputManager.ActiveDevice.DPadRight.WasPressed) {
-                    //Debug.Log("22222222222");
-                    AimingManager.AttackKeyActive = 2;
-                }
-                else if (InputManager.ActiveDevice.DPadDown.WasPressed) {
-                    //Debug.Log("3333333333");
-                    AimingManager.AttackKeyActive = 3;
-                }
-                else if (InputManager.ActiveDevice.DPadLeft.WasPressed) {
-                    //Debug.Log("444444444");
-                    AimingManager.AttackKeyActive = 4;
+            }
+            else if (InputManager.ActiveDevice.LeftStickButton.WasPressed) {
+                joystickDir = InputManager.ActiveDevice.LeftStick.Vector;
+                if (joystickDir.magnitude > 0.3) {
+                    var angle = InputManager.ActiveDevice.LeftStick.Angle;
+                    //AimingManager.AttackKeyActive = joystickDir
+                    AimingManager.AttackKeyActive = Mathf.CeilToInt((angle + 45) % 360) / 90 + 1;
+                    Debug.Log("joystick angle: " + Mathf.CeilToInt((angle + 45) % 360) / 90 + 1);
                 }
             }
         }

@@ -12,7 +12,7 @@ using System.Collections;
 using InControl;
 
 namespace silksong_Aiming {
-    [BepInPlugin("com.PDE26jjk.Aiming", "Aiming", "0.0.5")]
+    [BepInPlugin("com.PDE26jjk.Aiming", "Aiming", "1.0.0")]
     public class Main : BaseUnityPlugin {
         private ConsoleController consoleController;
         private InputController mouseCircleRenderer;
@@ -38,7 +38,7 @@ namespace silksong_Aiming {
 
         }
         private void WaitForGameManager() {
-            if (gm) {
+            if (GameManager.SilentInstance) {
                 CreateAimingControllerIfNeeded();
                 Harmony.CreateAndPatchAll(typeof(HeroController_ThrowTool_Patcher));
                 Harmony.CreateAndPatchAll(typeof(HeroInput_Patcher));
@@ -75,9 +75,9 @@ namespace silksong_Aiming {
             gm.LoadGameFromUI(2);
         }
         private void GetSettings() {
-            string lang = "EN"; // DE, EN, ES, FR, IT, JA, KO, PT, RU, ZH
+            string lang; // DE, EN, ES, FR, IT, JA, KO, PT, RU, ZH
             TeamCherry.Localization.LocalizationProjectSettings.TryGetSavedLanguageCode(out lang);
-            Debug.Log("TryGetSavedLanguageCode-----------------------------------------------" + lang);
+            //Debug.Log("TryGetSavedLanguageCode-----------------------------------------------" + lang);
 
             Settings.Initialize(this.Config, lang);
         }
@@ -141,7 +141,6 @@ namespace silksong_Aiming {
         internal static float LastClickTime;
         internal static int AttackKeyActive = 1;
         internal static bool UsingJoystick;
-        internal static bool _UseHarpoonDashAiming => Settings.UseHarpoonDashAiming.Value;
         internal static bool ReplaceAttackKey => Settings.ReplaceAttackKey.Value;
         internal static bool ShouldUpdateHUD;
         internal static bool DefaultJoystickDir;
@@ -198,7 +197,10 @@ namespace silksong_Aiming {
         }
 
         internal static bool UseHarpoonDashAiming() {
-            return IsAiming && _UseHarpoonDashAiming;
+            return IsAiming && Settings.UseHarpoonDashAiming.Value;
+        }
+        internal static bool UseSilkChargeAiming() {
+            return IsAiming && Settings.UseSilkChargeAiming.Value;
         }
     }
     public class ConsoleLogListener : ILogListener {
@@ -248,5 +250,5 @@ namespace silksong_Aiming {
             //Debug.Log($"[FSM事件] {__instance.name} 事件: {eventName}");
         }
 
-    } 
+    }
 }

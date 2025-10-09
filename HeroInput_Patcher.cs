@@ -124,11 +124,11 @@ namespace silksong_Aiming {
             //SetInputWasPressed(inputActions.Down,false);
             downAttack = false;
             int angle2y = Math.Abs(((Math.Abs((int)angle) % 180)) - 90);
-            if (dir.y > 0 && angle2y < 30) {
+            if (dir.y > 0 && angle2y < Settings.UpSlashAngle.Value) {
                 SetInputIsPressed(inputActions.Up, true);
                 SetInputIsPressed(inputActions.Down, false);
             }
-            else if (dir.y < 0 && angle2y < 45) {
+            else if (dir.y < 0 && angle2y < Settings.DownSlashAngle.Value) {
                 SetInputIsPressed(inputActions.Up, false);
                 SetInputIsPressed(inputActions.Down, true);
                 downAttack = true;
